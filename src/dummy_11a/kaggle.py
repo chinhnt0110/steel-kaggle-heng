@@ -384,7 +384,8 @@ def run_make_split():
 
 
 def run_make_train_split():
-    image_file = glob.glob(ROOT_DIR + '/data/train_images/*.jpg')
+    # image_file = glob.glob(ROOT_DIR + '/data/train_images/*.jpg')
+    image_file = os.listdir(ROOT_DIR + '/data/train_images/')
     image_file = ['train_images/' + i.split('/')[-1] for i in image_file]
     print(len(image_file))  # 12568
     # print(image_file[:10])
