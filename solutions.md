@@ -65,7 +65,26 @@ Best submission
 | 0.918https    | 0.90934       |
 Pipeline
 ![Pipeline](https://www.googleapis.com/download/storage/v1/b/kaggle-user-content/o/inbox%2F263239%2Ff7bf0093fee5274cf1aa07efc29b0c7a%2Fmodel.png?generation=1573784178983559&alt=media)
-[Discussion]()
+- Basic Model:​ Unet, Feature Pyramid Network (FPN)
+- Encoder:​ efficientnet-b3, efficientnet-b4, efficientnet-b5, se-resnext50
+- Loss:​ Focal Loss
+- Optimizer:​ Adam, init lr = 0.0005
+- Learning Rate Scheduler:​ ReduceLROnPlateau (factor=0.5, patience=3,cooldown=3, min_lr=1e-8)
+- Image Size:​ 256x800 for training, 256x1600 for inference
+- Image Augmentation: horizontal flip, vertical flip
+- Sampler: Weighted Sampler
+- Ensemble Model: average 9 model output probability to achieve the final mask probability without TTA.
+    1. FPN + efficientnet-b5 + concatenation of feature maps
+    2. FPN + efficientnet-b4
+    3. Unet + efficientnet-b4 , add pseudo labeling data in training data
+    4. Unet + efficientnet-b4, training with heavy image augmentation
+    5. Unet + efficientnet-b4 +SCSE layer
+    6. Unet + efficientnet-b4 +SCSE layer, add pseudo labeling data in training data
+    7. Unet + efficientnet-b4 + Mish layer
+    8. Unet + efficientnet-b3
+    9. Unet + se-resnext50
+    
+[See more](https://www.kaggle.com/c/severstal-steel-defect-detection/discussion/117377)
 ###4th place solution
 ###5th place solution
 ###7th place solution
