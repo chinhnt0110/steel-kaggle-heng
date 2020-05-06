@@ -3,7 +3,8 @@ import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 import sys
 
-ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+ROOT_DIR = os.path.dirname(os.path.gment
+dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 sys.path.append(ROOT_DIR + '/src/dummy_11a')
 from common import *
 from dataset import *

@@ -6,8 +6,7 @@ print(ROOT_DIR)
 sys.path.append(ROOT_DIR + '/src/dummy_11a')
 from src.dummy_11a.kaggle import *
 
-DATA_DIR = ROOT_DIR + '/data'  # for steel kaggle
-# DATA_DIR = ROOT_DIR + '/data/scratch' # for big scratch
+DATA_DIR = ROOT_DIR + '/data'
 
 
 class SteelDataset(Dataset):
@@ -40,7 +39,7 @@ class SteelDataset(Dataset):
                 encoded_pixel.append('')
 
         data = {'ImageId_ClassId': image_id_class_id, 'EncodedPixels': encoded_pixel}
-        print(len(image_id_class_id), len(encoded_pixel))
+        # print(len(image_id_class_id), len(encoded_pixel))
         df = pd.DataFrame(data, columns=['ImageId_ClassId', 'EncodedPixels'])
         df.fillna('', inplace=True)
         df['Class'] = df['ImageId_ClassId'].str[-1].astype(np.int32)
@@ -162,36 +161,73 @@ def null_collate(batch):
     return input, truth, infor
 
 
-class FourBalanceClassSampler(Sampler):
+# class FiveBalanceClassSampler(Sampler):
+#
+#     def __init__(self, dataset):
+#         self.dataset = dataset
+#
+#         label = (self.dataset.df['Label'].values)
+#         label = label.reshape(-1, 4)
+#         label = np.hstack([label.sum(1, keepdims=True) == 0, label]).T
+#
+#         self.neg_index = np.where(label[0])[0]
+#         self.pos1_index = np.where(label[1])[0]
+#         self.pos2_index = np.where(label[2])[0]
+#         self.pos3_index = np.where(label[3])[0]
+#         self.pos4_index = np.where(label[4])[0]
+#
+#         # assume we know neg is majority class
+#         num_neg = len(self.neg_index)
+#         self.length = 5 * num_neg
+#
+#     def __iter__(self):
+#         neg = self.neg_index.copy()
+#         random.shuffle(neg)
+#         num_neg = len(self.neg_index)
+#
+#         pos1 = np.random.choice(self.pos1_index, num_neg, replace=True)
+#         pos2 = np.random.choice(self.pos2_index, num_neg, replace=True)
+#         pos3 = np.random.choice(self.pos3_index, num_neg, replace=True)
+#         pos4 = np.random.choice(self.pos4_index, num_neg, replace=True)
+#
+#         l = np.stack([neg, pos1, pos2, pos3, pos4]).T
+#         l = l.reshape(-1)
+#         return iter(l)
+#
+#     def __len__(self):
+#         return self.length
+
+class FiveBalanceClassSampler(Sampler):
 
     def __init__(self, dataset):
         self.dataset = dataset
 
         label = (self.dataset.df['Label'].values)
-        label = label.reshape(-1, 4)
-        label = np.hstack([label.sum(1, keepdims=True) == 0, label]).T
+        label = label.reshape(-1,4)
+        label = np.hstack([label.sum(1,keepdims=True)==0,label]).T
 
-        self.neg_index = np.where(label[0])[0]
+        self.neg_index  = np.where(label[0])[0]
         self.pos1_index = np.where(label[1])[0]
         self.pos2_index = np.where(label[2])[0]
         self.pos3_index = np.where(label[3])[0]
         self.pos4_index = np.where(label[4])[0]
 
-        # assume we know neg is majority class
-        num_neg = len(self.neg_index)
-        self.length = 4 * num_neg
+        #5x
+        self.num_image = len(self.dataset.df)//4
+        self.length = self.num_image*5
+
 
     def __iter__(self):
-        neg = self.neg_index.copy()
-        random.shuffle(neg)
-        num_neg = len(self.neg_index)
+        # neg = self.neg_index.copy()
+        # random.shuffle(neg)
 
-        pos1 = np.random.choice(self.pos1_index, num_neg, replace=True)
-        pos2 = np.random.choice(self.pos2_index, num_neg, replace=True)
-        pos3 = np.random.choice(self.pos3_index, num_neg, replace=True)
-        pos4 = np.random.choice(self.pos4_index, num_neg, replace=True)
+        neg  = np.random.choice(self.neg_index,  self.num_image, replace=True)
+        pos1 = np.random.choice(self.pos1_index, self.num_image, replace=True)
+        pos2 = np.random.choice(self.pos2_index, self.num_image, replace=True)
+        pos3 = np.random.choice(self.pos3_index, self.num_image, replace=True)
+        pos4 = np.random.choice(self.pos4_index, self.num_image, replace=True)
 
-        l = np.stack([neg, pos1, pos2, pos3, pos4]).T
+        l = np.stack([neg,pos1,pos2,pos3,pos4]).T
         l = l.reshape(-1)
         return iter(l)
 

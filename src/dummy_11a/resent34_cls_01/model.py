@@ -13,7 +13,7 @@ class Net(nn.Module):
         conversion = copy.copy(CONVERSION)
         for i in range(0, len(conversion) - 8, 4):
             conversion[i] = 'block.' + conversion[i][5:]
-        load_pretrain(self, skip, pretrain_file=PRETRAIN_FILE, conversion=conversion, is_print=is_print)
+        load_pretrain(self, skip, pretrain_file=PRETRAIN_FILE, load_pretrainconversion=conversion, is_print=is_print)
 
     def __init__(self, num_class=4, drop_connect_rate=0.2):
         super(Net, self).__init__()

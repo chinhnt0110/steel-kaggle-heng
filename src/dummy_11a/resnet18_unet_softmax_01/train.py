@@ -11,6 +11,8 @@ from model import *
 
 torch.cuda.empty_cache()
 
+from torch.utils.tensorboard import SummaryWriter
+writer = SummaryWriter()
 
 def valid_augment(image, mask, infor):
     return image, mask, infor
@@ -89,10 +91,12 @@ def do_valid(net, valid_loader, out_dir=None):
         net.eval()
         input = input.cuda()
         truth_mask = truth_mask.cuda()
+        # print('\ntruth_mask_shape', truth_mask.shape)
         truth_label = truth_label.cuda()
 
         with torch.no_grad():
             logit = data_parallel(net, input)  # net(input)
+            # print('logit_shape', logit.shape)
             loss = criterion(logit, truth_mask)
             tn, tp, num_neg, num_pos = metric_hit(logit, truth_mask)
             dn, dp, num_neg, num_pos = metric_dice(logit, truth_mask, threshold=0.5, sum_threshold=100)
@@ -143,14 +147,14 @@ def do_valid(net, valid_loader, out_dir=None):
 def run_train():
     out_dir = ROOT_DIR + '/result/resnet18-seg-full-softmax-foldb1-1-4balance'
 
-    initial_checkpoint = ROOT_DIR + '/result/resnet18-seg-full-softmax-foldb1-1-4balance/checkpoint/00109500_model.pth'
-
-    schduler = NullScheduler(lr=0.001)
-    batch_size = 2  # 8
+    # initial_checkpoint = ROOT_DIR + '/result/resnet18-seg-full-softmax-foldb1-1-4balance/checkpoint/00114000_model.pth'
+    initial_checkpoint = None
+    schduler = NullScheduler(lr=0.01)
+    batch_size = 4  # 8
     iter_accum = 4
 
     loss_weight = None  # [5,5,2,5] #
-    train_sampler = RandomSampler
+    train_sampler = FiveBalanceClassSampler
 
     ## setup  -----------------------------------------------------------------------------
     for f in ['checkpoint', 'train', 'valid', 'backup']: os.makedirs(out_dir + '/' + f, exist_ok=True)
@@ -283,7 +287,7 @@ def run_train():
     iter = 0
     i = 0
 
-    print(len(train_loader), '******')
+    # print(len(train_loader), '******')
     start = timer()
     while iter < num_iters:
         sum_train_loss = np.zeros(20, np.float32)
@@ -311,6 +315,18 @@ def run_train():
                         time_to_str((timer() - start), 'min'))
                     )
                 log.write('\n')
+            if (iter % 10 == 0):
+                writer.add_scalars('loss', {'train': train_loss[0], 'val': valid_loss[0]}, iter)
+                writer.add_scalars('hit_neg', {'train': train_loss[1], 'val': valid_loss[1]}, iter)
+                writer.add_scalars('pos1/recall', {'train': train_loss[2], 'val': valid_loss[2]}, iter)
+                writer.add_scalars('pos2/recall', {'train': train_loss[3], 'val': valid_loss[3]}, iter)
+                writer.add_scalars('pos3/recall', {'train': train_loss[4], 'val': valid_loss[4]}, iter)
+                writer.add_scalars('pos4/recall', {'train': train_loss[5], 'val': valid_loss[5]}, iter)
+                writer.add_scalar('dice_neg', valid_loss[6], iter)
+                writer.add_scalar('pos1/dice/val', valid_loss[7], iter)
+                writer.add_scalar('pos2/dice/val', valid_loss[8], iter)
+                writer.add_scalar('pos3/dice/val', valid_loss[9], iter)
+                writer.add_scalar('pos4/dice/val', valid_loss[10], iter)
 
             # if 0:
             if iter in iter_save:
@@ -387,9 +403,9 @@ def run_train():
                             result = draw_predict_result(image[b], truth_mask[b], truth_label[b], probability_mask[b],
                                                          stack='vertical')
 
-                            image_show('result', result, resize=1)
+                            # image_show('result', result, resize=1)
                             cv2.imwrite(out_dir + '/train/%05d.png' % (di * 100 + b), result)
-                            cv2.waitKey(1)
+                            # cv2.waitKey(1)
                             pass
 
         pass  # -- end of one data loader --
