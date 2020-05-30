@@ -35,22 +35,20 @@
   - TTA: null, hflip, vflip
 
 ## Usage
+
+The project is at `/mnt/ssd1/projects/steel-kaggle/20190910_modified`.
+
 **Get data**
-- Steel:
   
-  [Install Kaggle API](https://github.com/Kaggle/kaggle-api) and accept competion rules.
+ - Install Kaggle API](https://github.com/Kaggle/kaggle-api) and accept competion rules.
 
-  ``` 
-  cd data
-  kaggle competitions download -c kaggle competitions download -c severstal-steel-defect-detection
-  unzip severstal-steel-defect-detection.zip
-  ```
-- Scratch
+      ``` 
+      cd data
+      kaggle competitions download -c kaggle competitions download -c severstal-steel-defect-detection
+      unzip severstal-steel-defect-detection.zip
+      ```
+- Training images is already at `/mnt/ssd1/projects/steel-kaggle/steel-kaggle-heng/data/train_images` and csv file is `/mnt/ssd1/projects/steel-kaggle/steel-kaggle-heng/data/train.csv`, no need to run the above command.
 
-  Download images from s3 and convert to .csv file.
-  ```
-  python src/dummy_11a/load_scratch.py
-  ```
 **Split data**
 
   Split data to training set, validation set `run_make_train_split()` and test set `run_make_test_split()`
